@@ -1,20 +1,27 @@
 import pyvisa as visa
 
 class Instrument():
-    def __init__(self, VISA_address,model=None,serial=None):
+    def __init__(self, VISA_address,model=None,serial=None,
+                 command_reset='*RST',
+                 command_idn='*IDN?',
+                 command_meas='MEAS?',*args):
+
         self.model=model
         self.serial=serial
+        self.command_reset=command_reset
+        self.command_idn=command_idn
+        self.command_meas=command_meas
 
         self.VISA_address=VISA_address
         self.rm=visa.ResourceManager()
         print(f'Instruments: {self.rm.list_resources()}')
         self.inst=self.rm.open_resource(self.VISA_address)
 
-    def reset(self,cmd='*RST'):
-        self.inst.write(cmd)
+    def reset(self):
+        self.inst.write(self.command_reset)
 
-    def idn(self,cmd='*IDN?'):
-        self.identifier=self.inst.query(cmd)
+    def idn(self,*args):
+        self.identifier=self.inst.query(self.command_idn)
         return self.identifier
 
     def send_command(self,cmd):
@@ -28,9 +35,8 @@ class Instrument():
             response=str(response)
         return response
 
-    def meas(self,meas_command='MEAS?',*args):
-
-        self.measured_value=self.send_query(cmd=meas_command,*args)
+    def meas(self,*args):
+        self.measured_value=self.send_query(cmd=self.command_meas,*args)
         return self.measured_value
 
 class Multimeter(Instrument):
